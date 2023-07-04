@@ -12,9 +12,14 @@ It contains different tools such as (Font to Single Character in .png format) co
 ## Tech
 
 - [opentype4j](https://github.com/Jkanon/opentype4j) - A library to Parse OpenType Fonts
+- [zt-zip](https://github.com/zeroturnaround/zt-zip) - Library to Create zip files.
 
 
 ## Installation
-Get the executable jar
+Get the executable jar in target folder
 
-    mvn clean install
+    mvn clean package
+    
+## Run
+    
+    java -jar fonttools-<version>.jar
