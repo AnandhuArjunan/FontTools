@@ -1,0 +1,18 @@
+@import 'dracula.css';
+
+#showPreviewPane{
+	-fx-background-color :   -color-accent-7;
+}
+
+#startProcessPane{
+	-fx-background-color :   -color-accent-8;
+}
+
+
+#showPreviewPane:hover {
+	-fx-background-color :  -color-accent-4;
+}
+
+#startProcessPane:hover {
+	-fx-background-color : -color-accent-4;
+}

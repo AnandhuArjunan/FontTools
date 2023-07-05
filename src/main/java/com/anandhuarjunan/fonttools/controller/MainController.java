@@ -1,4 +1,4 @@
-package com.anandhuarjunan.fonttools;
+package com.anandhuarjunan.fonttools.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -8,31 +8,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import org.zeroturnaround.zip.*;
 
+import com.anandhuarjunan.fonttools.helper.FontHelper;
+import com.anandhuarjunan.fonttools.helper.LogHandler;
+import com.anandhuarjunan.fonttools.utils.JFXUtil;
+import com.anandhuarjunan.fonttools.utils.RuntimeUtil;
 import com.weihq.opentype4j.GlyphData;
 import com.weihq.opentype4j.render.ImageFormat;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
+import java.util.*;
+
 public class MainController implements Initializable {
 	
 	private static final Logger LOGGER = Logger.getLogger(MainController.class.getName());
@@ -98,15 +107,39 @@ public class MainController implements Initializable {
     @FXML
     private Button outputFileBrowse;
     
+    @FXML
+    private ProgressBar ramProgressBar;
+    
+    @FXML
+    private HBox showPreviewBtn;
+    
+    @FXML
+    private Text memAvlStatus;
+    
+    @FXML
+    private HBox fontPreviePgrsPane;
+
+    @FXML
+    private ProgressIndicator fntPrwProgress;
+    
     private  File inputfile = null;
     
     private  File outputDirectory = null;
     
     private FontHelper fontHelper = new FontHelper();
+    
+    private Timer ramTimer = new Timer();
+    
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    
+    private List<GlyphData>  glyphDatas = null;
 
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		
+		
+		loadRAMStatus();
 		initiateLogger();
 		chooseFileDirectoryAction();
 		inputFilterAction();
@@ -114,6 +147,58 @@ public class MainController implements Initializable {
 		outputFormatAction();
 		startButtonAction();
 		exportTypeAction();
+		showPreviewBtnAction();
+		}
+		
+
+
+	private void showPreviewBtnAction() {
+		fontPreviePgrsPane.getChildren().remove(fntPrwProgress);
+		showPreviewBtn.setOnMouseClicked(ev->{
+	    if(!urOwnTextFld.getText().isEmpty() || !Objects.isNull(inputfile)) {
+				Runnable r = ()->{
+					try {
+						glyphDatas = null;
+						Platform.runLater(()->fontPreviePgrsPane.getChildren().add(fntPrwProgress));
+						glyphDatas =  fontHelper.getCharactersAsGlyph(inputfile, urOwnTextFld.getText());
+						double wdth = Double.parseDouble(imgWidth.getText());
+						double height = Double.parseDouble(imgHeight.getText());
+						generateFontPreview(glyphDatas, wdth, height);
+						Platform.runLater(()->fontPreviePgrsPane.getChildren().remove(fntPrwProgress));
+				} catch (IOException e) {
+					LOGGER.severe("Preview Failure :( ");
+					LOGGER.severe(e.getMessage());
+				}
+				};
+				executorService.execute(r);
+	    }else {
+	    	JFXUtil.showInfoAlert("Please chech the inputs..", "Please chech the inputs..");
+	    }
+		});
+		
+	}
+
+
+
+	private void loadRAMStatus() {
+	
+		
+		TimerTask task = new TimerTask() {
+			  @Override
+			  public void run() {
+				  double percentage = RuntimeUtil.getPercentageUsed();
+				  String usedInMB = RuntimeUtil.getUsedMemoryInMiB();
+				  String maximumInMB = RuntimeUtil.getMaxMemoryInMiB();
+				  
+					Platform.runLater(()->{
+						ramProgressBar.setProgress(percentage);
+						memAvlStatus.setText("Used / Maximum - "+usedInMB +"/"+ maximumInMB);
+
+					});
+			  }
+			};
+
+			ramTimer.schedule(task, 0l, 1000l);
 	}
 
 	private void exportTypeAction() {
@@ -131,17 +216,23 @@ public class MainController implements Initializable {
 
 	private void startButtonAction() {
 		
+		System.out.println(Thread.currentThread().getName());
+
+		
 		startAction.setOnMouseClicked(ev->{
+			
+			Runnable r = ()->{
+
+			
+			
+			
 			if(Objects.isNull(inputfile) || Objects.isNull(outputDirectory) || urOwnTextFld.getText().isEmpty()) {
-				Alert a = new Alert(AlertType.NONE);
-				a.setTitle("Info");
-				a.setContentText("Please check if all the inputs are provided");
-				a.setAlertType(AlertType.INFORMATION);
-				a.show();
+				
 			}else {
 				try {
 			        LOGGER.info("Loading Font ......");
-					List<GlyphData>  glyphDatas = fontHelper.getCharactersAsGlyph(inputfile, urOwnTextFld.getText());
+					System.out.println(Thread.currentThread().getName());
+
 			        LOGGER.info("Successfully Loaded Font ......");
 			        imagePreview.getChildren().clear();
 			        
@@ -151,19 +242,19 @@ public class MainController implements Initializable {
 						try {
 							double wdth = Double.parseDouble(imgWidth.getText());
 							double height = Double.parseDouble(imgHeight.getText());
-							
-							imgBytes =  g.getPath(Util.toHexString(fontColor.getValue()),wdth,height).toImageBytes(ImageFormat.PNG);
+							imgBytes = g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toImageBytes(ImageFormat.PNG);
+
 							
 							if(expAsSeparate.isSelected()) {
 								if(ouputSvg.isSelected()) {
-									g.getPath(Util.toHexString(fontColor.getValue()),wdth,height).toSVG(new File(outputDirectory, g.getName()+".svg").getAbsolutePath());
+									g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toSVG(new File(outputDirectory, g.getName()+".svg").getAbsolutePath());
 								}else if(outputPng.isSelected()) {
-									g.getPath(Util.toHexString(fontColor.getValue()),wdth,height).toImage(new File(outputDirectory, g.getName()+".png"), ImageFormat.PNG);
+									g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toImage(new File(outputDirectory, g.getName()+".png"), ImageFormat.PNG);
 								}
 								
 							}else if(expAsZip.isSelected()) {
 								if(ouputSvg.isSelected()) {
-									files.add(new ByteSource(g.getName()+".svg", g.getPath(Util.toHexString(fontColor.getValue()),wdth,height).toSVG().getBytes()));
+									files.add(new ByteSource(g.getName()+".svg", g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toSVG().getBytes()));
 
 								}else if(outputPng.isSelected()) {
 									files.add(new ByteSource(g.getName()+".png", imgBytes));
@@ -175,7 +266,6 @@ public class MainController implements Initializable {
 
 							
 							//Common preview.
-				        	imagePreview.getChildren().add(new ImageView(new Image(new ByteArrayInputStream(imgBytes))));
 						} catch (IOException e) {
 					        LOGGER.severe(e.getMessage());
 
@@ -197,6 +287,34 @@ public class MainController implements Initializable {
 
 				}
 			}
+			
+			};
+			executorService.submit(r);
+
+		});
+		
+		
+		
+
+	}
+	
+	
+	private void generateFontPreview(List<GlyphData>  glyphDatas, double width, double height) {
+		Platform.runLater(()->imagePreview.getChildren().clear());
+
+		glyphDatas.forEach(g->{
+			byte[] imgBytes;
+			try {
+				imgBytes = g.getPath(JFXUtil.toHexString(fontColor.getValue()),width,height).toImageBytes(ImageFormat.PNG);
+				Platform.runLater(()-> {
+					imagePreview.getChildren().add(new ImageView(new Image(new ByteArrayInputStream(imgBytes))));
+
+				});
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 		});
 	}
 
@@ -236,7 +354,6 @@ public class MainController implements Initializable {
         	 inputfile = fileChooser.showOpenDialog(fontBrowse.getScene().getWindow());
     		 if (inputfile != null) {
     	            fontLoc.setText(inputfile.getName());
-
              }
         });
 		
@@ -252,5 +369,8 @@ public class MainController implements Initializable {
             outputFolderLoc.setText(outputDirectory.getName());
         });
 	}
+	
+	
+	
 
 }

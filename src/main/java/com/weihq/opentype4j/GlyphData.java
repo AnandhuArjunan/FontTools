@@ -45,8 +45,8 @@ public class GlyphData extends AbstractParser<GlyphData> {
 
     public Path getPath(double x, double y, double fontSize) {
         Path path = new Path().parse((ScriptObjectMirror) scriptObjectMirror.callMember("getPath", x, y, fontSize,null,null));
-        path.setWidth(font.getHead().getxMax() - font.getHead().getxMin());
-        path.setHeight(font.getHead().getyMax() - font.getHead().getyMin());
+      //  path.setWidth(font.getHead().getxMax() - font.getHead().getxMin());
+       // path.setHeight(font.getHead().getyMax() - font.getHead().getyMin());
         return path;
     }
 
@@ -61,14 +61,22 @@ public class GlyphData extends AbstractParser<GlyphData> {
         double fontBaseline = fontCell.getMarginTop() + h * head.getyMax() / maxHeight;
         double fontSize = fontScale * font.getUnitsPerEm();
 
-        Path path = getPath(fontCell.getRelativeX() + xMin, fontCell.getRelativeY() + fontBaseline, fontSize,"#D50000");
-        path.setWidth(fontCell.getWidth() + fontCell.getRelativeX());
-        path.setHeight(fontCell.getHeight() + fontCell.getRelativeY());
+        Path path = getPath(0, fontCell.getRelativeY() + fontSize, fontSize);
+      //  path.setWidth(fontCell.getWidth() + fontCell.getRelativeX());
+       // path.setHeight(fontCell.getHeight() + fontCell.getRelativeY());
         return path;
     }
-
+    
     public Path getPath() {
         return getPath(new FontCell());
+    }
+
+    public Path getPath(int x, int y) {
+    	FontCell k  = new FontCell(x,y);
+    	k.setMarginBottom(50);
+    	k.setMarginLeftRight(0);
+    	k.setMarginTop(0);
+        return getPath(k);
     }
     
     

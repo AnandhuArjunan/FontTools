@@ -12,6 +12,8 @@ public class Main extends Application {
 
 @Override
 public void start(Stage stage) throws Exception {
+	Application.setUserAgentStylesheet(getClass().getResource("/theme/app.css").toString());
+	
 	final Parent root = FXMLLoader.load(getClass().getResource("/fxml/Main.fxml"));
 	final Scene scene = new Scene(root);
 	stage.initStyle(StageStyle.DECORATED);
