@@ -33,6 +33,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
@@ -122,6 +123,13 @@ public class MainController implements Initializable {
     @FXML
     private ProgressIndicator fntPrwProgress;
     
+    @FXML
+    private RadioButton fontCharUnicode;
+
+    @FXML
+    private RadioButton fontCharName;
+
+    
     private  File inputfile = null;
     
     private  File outputDirectory = null;
@@ -133,23 +141,43 @@ public class MainController implements Initializable {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     
     private List<GlyphData>  glyphDatas = null;
+    
+    private int wdth = 0;
+    private int height = 0;
 
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		
-		
-		loadRAMStatus();
-		initiateLogger();
-		chooseFileDirectoryAction();
-		inputFilterAction();
-		chooseOutputFolderAction();
-		outputFormatAction();
-		startButtonAction();
-		exportTypeAction();
-		showPreviewBtnAction();
+		try {
+			loadRAMStatus();
+			initiateLogger();
+			chooseFileDirectoryAction();
+			inputFilterAction();
+			chooseOutputFolderAction();
+			outputFormatAction();
+			startButtonAction();
+			exportTypeAction();
+			showPreviewBtnAction();
+			fileNameAction();
+			wdth = Integer.parseInt(imgHeight.getText());
+			height = Integer.parseInt(imgHeight.getText());
+		}catch(Exception e) {
+			LOGGER.severe("System Failure :( ");
+			LOGGER.severe(e.getMessage());
+
 		}
 		
+		}
+		
+
+
+	private void fileNameAction() {
+		ToggleGroup group = new ToggleGroup();
+		fontCharUnicode.setToggleGroup(group);
+		fontCharName.setToggleGroup(group);
+		fontCharUnicode.setSelected(true);
+	}
+
 
 
 	private void showPreviewBtnAction() {
@@ -161,18 +189,16 @@ public class MainController implements Initializable {
 						glyphDatas = null;
 						Platform.runLater(()->fontPreviePgrsPane.getChildren().add(fntPrwProgress));
 						glyphDatas =  fontHelper.getCharactersAsGlyph(inputfile, urOwnTextFld.getText());
-						double wdth = Double.parseDouble(imgWidth.getText());
-						double height = Double.parseDouble(imgHeight.getText());
 						generateFontPreview(glyphDatas, wdth, height);
 						Platform.runLater(()->fontPreviePgrsPane.getChildren().remove(fntPrwProgress));
-				} catch (IOException e) {
+				} catch (Exception e) {
 					LOGGER.severe("Preview Failure :( ");
 					LOGGER.severe(e.getMessage());
 				}
 				};
 				executorService.execute(r);
 	    }else {
-	    	JFXUtil.showInfoAlert("Please chech the inputs..", "Please chech the inputs..");
+	    	JFXUtil.showInfoAlert("", "Please check the inputs..");
 	    }
 		});
 		
@@ -216,90 +242,103 @@ public class MainController implements Initializable {
 
 	private void startButtonAction() {
 		
-		System.out.println(Thread.currentThread().getName());
-
-		
 		startAction.setOnMouseClicked(ev->{
 			
 			Runnable r = ()->{
 
-			
-			
-			
 			if(Objects.isNull(inputfile) || Objects.isNull(outputDirectory) || urOwnTextFld.getText().isEmpty()) {
-				
+		    	JFXUtil.showInfoAlert("Please check the inputs..", "Please check the inputs..");
 			}else {
 				try {
-			        LOGGER.info("Loading Font ......");
-					System.out.println(Thread.currentThread().getName());
-
-			        LOGGER.info("Successfully Loaded Font ......");
-			        imagePreview.getChildren().clear();
-			        
+					Platform.runLater(()->fontPreviePgrsPane.getChildren().add(fntPrwProgress));
 			        List<ZipEntrySource> files = new ArrayList<>();
 			        glyphDatas.forEach(g->{
-			        	byte[] imgBytes;
-						try {
-							double wdth = Double.parseDouble(imgWidth.getText());
-							double height = Double.parseDouble(imgHeight.getText());
-							imgBytes = g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toImageBytes(ImageFormat.PNG);
-
-							
-							if(expAsSeparate.isSelected()) {
-								if(ouputSvg.isSelected()) {
-									g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toSVG(new File(outputDirectory, g.getName()+".svg").getAbsolutePath());
-								}else if(outputPng.isSelected()) {
-									g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toImage(new File(outputDirectory, g.getName()+".png"), ImageFormat.PNG);
-								}
-								
-							}else if(expAsZip.isSelected()) {
-								if(ouputSvg.isSelected()) {
-									files.add(new ByteSource(g.getName()+".svg", g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toSVG().getBytes()));
-
-								}else if(outputPng.isSelected()) {
-									files.add(new ByteSource(g.getName()+".png", imgBytes));
-
-								}
-								
-							}
-							
-
-							
-							//Common preview.
+					try {
+							createIndividualImages(g);
+							addEntryToZip(files,g);
 						} catch (IOException e) {
 					        LOGGER.severe(e.getMessage());
-
 						}
 			        });
-			        File zip = new File(outputDirectory, inputfile.getName()+".zip");
-			        ZipUtil.createEmpty(zip);
-			        ZipEntrySource[]arr = new ZipEntrySource [files.size()];
-
-			        //Converting List to Array
-			        files.toArray(arr);
-					  ZipUtil.addEntries(zip, arr);
-
 			        
-
-
+			      createZipFile(files);
+			        LOGGER.info("Operation is Successful");
 				}catch(Exception e) {
 			        LOGGER.severe(e.getMessage());
+
+				}finally {
+					Platform.runLater(()->fontPreviePgrsPane.getChildren().remove(fntPrwProgress));
 
 				}
 			}
 			
 			};
 			executorService.submit(r);
-
 		});
-		
-		
-		
 
 	}
 	
 	
-	private void generateFontPreview(List<GlyphData>  glyphDatas, double width, double height) {
+	private void createZipFile(List<ZipEntrySource> files) {
+		  if(expAsZip.isSelected()) {
+	        	File zip = new File(outputDirectory, inputfile.getName()+".zip");
+		        ZipUtil.createEmpty(zip);
+		        ZipEntrySource[]arr = new ZipEntrySource [files.size()];
+
+		        //Converting List to Array
+		        files.toArray(arr);
+				ZipUtil.addEntries(zip, arr);
+	        }
+		
+	}
+
+
+
+	private void addEntryToZip(List<ZipEntrySource> files,GlyphData g) throws IOException {
+		if(expAsZip.isSelected()) {
+			String fileName = getFileName(g);
+
+			if(ouputSvg.isSelected()) {
+				files.add(new ByteSource(fileName+".svg", g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toSVG().getBytes()));
+
+			}else if(outputPng.isSelected()) {
+				files.add(new ByteSource(fileName+".png", g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toImageBytes(ImageFormat.PNG)));
+
+			}
+			
+		}
+		
+		
+	}
+
+	private void createIndividualImages(GlyphData g) throws IOException {
+		if(expAsSeparate.isSelected()) {
+		
+			String fileName = getFileName(g);
+			if(ouputSvg.isSelected()) {
+				g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toSVG(new File(outputDirectory, fileName+".svg").getAbsolutePath());
+			}else if(outputPng.isSelected()) {
+				g.getPath(JFXUtil.toHexString(fontColor.getValue()),wdth,height).toImage(new File(outputDirectory, fileName+".png"), ImageFormat.PNG);
+			}
+			
+		}
+		
+	}
+	
+	private String getFileName(GlyphData e) {
+		String fileName = null;
+		if(fontCharUnicode.isSelected()) {
+			fileName = new String(Character.toChars(e.getUnicode()));
+		}else if(fontCharName.isSelected()) {
+			fileName = e.getName();
+		}
+		
+		return fileName;
+	}
+
+
+
+	private void generateFontPreview(List<GlyphData>  glyphDatas, int width, int height) {
 		Platform.runLater(()->imagePreview.getChildren().clear());
 
 		glyphDatas.forEach(g->{
@@ -307,7 +346,10 @@ public class MainController implements Initializable {
 			try {
 				imgBytes = g.getPath(JFXUtil.toHexString(fontColor.getValue()),width,height).toImageBytes(ImageFormat.PNG);
 				Platform.runLater(()-> {
-					imagePreview.getChildren().add(new ImageView(new Image(new ByteArrayInputStream(imgBytes))));
+					ImageView imageView =  new ImageView(new Image(new ByteArrayInputStream(imgBytes)));
+				    BorderPane imageViewWrapper = new BorderPane(imageView);
+				    imageViewWrapper.getStyleClass().add("image-view-wrapper");
+					imagePreview.getChildren().add(imageViewWrapper);
 
 				});
 
