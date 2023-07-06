@@ -159,8 +159,7 @@ public class MainController implements Initializable {
 			exportTypeAction();
 			showPreviewBtnAction();
 			fileNameAction();
-			wdth = Integer.parseInt(imgHeight.getText());
-			height = Integer.parseInt(imgHeight.getText());
+		
 		}catch(Exception e) {
 			LOGGER.severe("System Failure :( ");
 			LOGGER.severe(e.getMessage());
@@ -183,6 +182,8 @@ public class MainController implements Initializable {
 	private void showPreviewBtnAction() {
 		fontPreviePgrsPane.getChildren().remove(fntPrwProgress);
 		showPreviewBtn.setOnMouseClicked(ev->{
+		wdth = Integer.parseInt(imgWidth.getText());
+		height = Integer.parseInt(imgHeight.getText());
 	    if(!urOwnTextFld.getText().isEmpty() || !Objects.isNull(inputfile)) {
 				Runnable r = ()->{
 					try {
@@ -243,7 +244,8 @@ public class MainController implements Initializable {
 	private void startButtonAction() {
 		
 		startAction.setOnMouseClicked(ev->{
-			
+			wdth = Integer.parseInt(imgWidth.getText());
+			height = Integer.parseInt(imgHeight.getText());
 			Runnable r = ()->{
 
 			if(Objects.isNull(inputfile) || Objects.isNull(outputDirectory) || urOwnTextFld.getText().isEmpty()) {

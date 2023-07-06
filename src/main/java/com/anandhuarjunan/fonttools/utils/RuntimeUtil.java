@@ -1,6 +1,5 @@
 package com.anandhuarjunan.fonttools.utils;
 
-import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.Locale;
 import java.text.DecimalFormatSymbols;

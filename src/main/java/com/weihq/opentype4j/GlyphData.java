@@ -45,25 +45,25 @@ public class GlyphData extends AbstractParser<GlyphData> {
 
     public Path getPath(double x, double y, double fontSize) {
         Path path = new Path().parse((ScriptObjectMirror) scriptObjectMirror.callMember("getPath", x, y, fontSize,null,null));
-      //  path.setWidth(font.getHead().getxMax() - font.getHead().getxMin());
-       // path.setHeight(font.getHead().getyMax() - font.getHead().getyMin());
+        path.setWidth(font.getHead().getxMax() - font.getHead().getxMin());
+       path.setHeight(font.getHead().getyMax() - font.getHead().getyMin());
         return path;
     }
 
     public Path getPath(FontCell fontCell) {
-        HeadTable head = font.getHead();
-        double w = fontCell.getFontWidth();
-        double h = fontCell.getFontHeight();
-        double maxHeight = head.getyMax() - head.getyMin();
-        double fontScale = Math.min(w / (head.getxMax() - head.getxMin()), h / maxHeight);
-        double glyphWidth = (double) getAdvanceWidth() * fontScale;
-        double xMin = (fontCell.getWidth() - glyphWidth) / 2;
-        double fontBaseline = fontCell.getMarginTop() + h * head.getyMax() / maxHeight;
-        double fontSize = fontScale * font.getUnitsPerEm();
+    	 HeadTable head = font.getHead();
+         double w = fontCell.getFontWidth();
+         double h = fontCell.getFontHeight();
+         double maxHeight = head.getyMax() - head.getyMin();
+         double fontScale = Math.min(w / (head.getxMax() - head.getxMin()), h / maxHeight);
+         double glyphWidth = (double) getAdvanceWidth() * fontScale;
+         double xMin = (fontCell.getWidth() - glyphWidth) / 2;
+         double fontBaseline = fontCell.getMarginTop() + h * head.getyMax() / maxHeight;
+         double fontSize = fontScale * font.getUnitsPerEm();
 
-        Path path = getPath(0, fontCell.getRelativeY() + fontSize, fontSize);
-      //  path.setWidth(fontCell.getWidth() + fontCell.getRelativeX());
-       // path.setHeight(fontCell.getHeight() + fontCell.getRelativeY());
+         Path path = getPath(fontCell.getRelativeX() + xMin, fontCell.getRelativeY() + fontBaseline, fontSize);
+         path.setWidth(fontCell.getWidth() + fontCell.getRelativeX());
+         path.setHeight(fontCell.getHeight() + fontCell.getRelativeY());
         return path;
     }
     
@@ -71,31 +71,24 @@ public class GlyphData extends AbstractParser<GlyphData> {
         return getPath(new FontCell());
     }
 
-    public Path getPath(int x, int y) {
-    	FontCell k  = new FontCell(x,y);
-    	k.setMarginBottom(50);
-    	k.setMarginLeftRight(0);
-    	k.setMarginTop(0);
-        return getPath(k);
-    }
-    
-    
-    public Path getPath(String color,double x, double y) {
-    	FontCell fontCell = new FontCell();
-        HeadTable head = font.getHead();
-        double w = fontCell.getFontWidth();
-        double h = fontCell.getFontHeight();
-        double maxHeight = head.getyMax() - head.getyMin();
-        double fontScale = Math.min(w / (head.getxMax() - head.getxMin()), h / maxHeight);
-        double glyphWidth = (double) getAdvanceWidth() * fontScale;
-        double xMin = (fontCell.getWidth() - glyphWidth) / 2;
-        double fontBaseline = fontCell.getMarginTop() + h * head.getyMax() / maxHeight;
-        double fontSize = fontScale * font.getUnitsPerEm();
 
-        Path path = getPath(fontCell.getRelativeX() + xMin, fontCell.getRelativeY() + fontBaseline, fontSize,color);
-        path.setWidth(x);
-        path.setHeight(y);
-        return path;
+    
+    
+    public Path getPath(String color,int x, int y) {
+    	FontCell fontCell  = new FontCell(x,y);
+    	 HeadTable head = font.getHead();
+         double w = fontCell.getFontWidth();
+         double h = fontCell.getFontHeight();
+         double maxHeight = head.getyMax() - head.getyMin();
+         double fontScale = Math.min(w / (head.getxMax() - head.getxMin()), h / maxHeight);
+         double glyphWidth = (double) getAdvanceWidth() * fontScale;
+         double xMin = (fontCell.getWidth() - glyphWidth) / 2;
+         double fontBaseline = fontCell.getMarginTop() + h * head.getyMax() / maxHeight;
+         double fontSize = fontScale * font.getUnitsPerEm();
+         Path path = getPath(fontCell.getRelativeX() + xMin, fontCell.getRelativeY() + fontBaseline, fontSize+5,color);
+         path.setWidth(fontCell.getWidth() + fontCell.getRelativeX());
+         path.setHeight(fontCell.getHeight() + fontCell.getRelativeY());
+         return path;
     }
     
     

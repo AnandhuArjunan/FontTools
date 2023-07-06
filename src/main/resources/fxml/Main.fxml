@@ -113,12 +113,6 @@
                               </VBox>
                            </children>
                         </HBox>
-                        <VBox alignment="CENTER_LEFT" prefHeight="200.0" spacing="10.0">
-                           <children>
-                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Font Size" />
-                              <TextField fx:id="imgHeight1" prefHeight="31.0" prefWidth="65.0" text="50" />
-                           </children>
-                        </VBox>
                         <VBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
                               <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Color of the Font" />
@@ -179,8 +173,9 @@
                         </VBox>
                         <VBox alignment="CENTER_LEFT" spacing="3.0">
                            <children>
-                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="File Name " />
-                              <RadioButton fx:id="expAsSeparate1" mnemonicParsing="false" selected="true" text="Font's Character" />
+                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="File Name [In Each Files]" />
+                              <RadioButton fx:id="fontCharUnicode" mnemonicParsing="false" selected="true" text="Font's Character" />
+                              <RadioButton fx:id="fontCharName" mnemonicParsing="false" text="Character Name" />
                            </children>
                         </VBox>
                      </children>
@@ -238,7 +233,7 @@
                   </HBox>
                   <ScrollPane id="fontPreview" VBox.vgrow="ALWAYS">
                      <content>
-                        <FlowPane fx:id="imagePreview" columnHalignment="CENTER" prefWrapLength="600.0">
+                        <FlowPane fx:id="imagePreview" columnHalignment="CENTER" hgap="10.0" prefWrapLength="700.0" vgap="10.0">
                            <padding>
                               <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                            </padding>

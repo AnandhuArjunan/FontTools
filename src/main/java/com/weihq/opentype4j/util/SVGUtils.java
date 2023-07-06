@@ -1,6 +1,8 @@
 package com.weihq.opentype4j.util;
 
 import com.weihq.opentype4j.render.ImageFormat;
+
+import org.apache.batik.ext.awt.image.codec.png.PNGEncodeParam;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.ImageTranscoder;
@@ -54,9 +56,6 @@ public class SVGUtils {
                 transcoder.addTranscodingHint(JPEGTranscoder.KEY_QUALITY, new Float(0.8));
             } else {
                 transcoder = new PNGTranscoder();
-               // transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, new Float(334));
-                //transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, new Float(384));
-
 
             }
             TranscoderInput input = new TranscoderInput(in);
