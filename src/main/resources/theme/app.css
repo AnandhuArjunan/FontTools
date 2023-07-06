@@ -1,9 +1,6 @@
 @import 'dracula.css';
 
 
-*{
-	-fx-font-family: 'Open Sans Regular';
-}
 #showPreviewPane{
 	-fx-background-color :   -color-accent-7;
 }
