@@ -1,8 +1,17 @@
 
-# FontTools - *Make png files out of Font Characters.*
-It contains different tools such as (Font to Single Character in .png format) converter .etc
+# FontTools - *Make png or svg files out of Font Characters.*
+It contains different tools such as Font to Single Character in .png format and .svg format converter .etc
 ## Use Case Scenarios : 
  1. The Generated png files can be helpful in creating WatchFaces.
+
+## Screenshots
+
+<img src="screenshots/1.png" alt="" width="750"/>
+<img src="screenshots/2.png" alt="" width="750"/>
+<img src="screenshots/3.png" alt="" width="750"/>
+<img src="screenshots/4.png" alt="" width="750"/>
+
+
 
 ## Requirements
 
