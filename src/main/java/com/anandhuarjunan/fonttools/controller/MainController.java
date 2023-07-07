@@ -27,6 +27,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.RadioButton;
@@ -35,7 +36,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
@@ -115,7 +115,7 @@ public class MainController implements Initializable {
     private HBox showPreviewBtn;
     
     @FXML
-    private Text memAvlStatus;
+    private Label memAvlStatus;
     
     @FXML
     private HBox fontPreviePgrsPane;
@@ -195,6 +195,7 @@ public class MainController implements Initializable {
 				} catch (Exception e) {
 					LOGGER.severe("Preview Failure :( ");
 					LOGGER.severe(e.getMessage());
+				    Thread.currentThread().interrupt();
 				}
 				};
 				executorService.execute(r);
@@ -343,10 +344,12 @@ public class MainController implements Initializable {
 	private void generateFontPreview(List<GlyphData>  glyphDatas, int width, int height) {
 		Platform.runLater(()->imagePreview.getChildren().clear());
 
-		glyphDatas.forEach(g->{
+		for(GlyphData glyphData : glyphDatas) {
+			if(!Thread.currentThread().isInterrupted()) {
+
 			byte[] imgBytes;
 			try {
-				imgBytes = g.getPath(JFXUtil.toHexString(fontColor.getValue()),width,height).toImageBytes(ImageFormat.PNG);
+				imgBytes = glyphData.getPath(JFXUtil.toHexString(fontColor.getValue()),width,height).toImageBytes(ImageFormat.PNG);
 				Platform.runLater(()-> {
 					ImageView imageView =  new ImageView(new Image(new ByteArrayInputStream(imgBytes)));
 				    BorderPane imageViewWrapper = new BorderPane(imageView);
@@ -358,8 +361,11 @@ public class MainController implements Initializable {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
-		});
+			
+		}else {
+			break;
+		}
+		}
 	}
 
 	private void outputFormatAction() {
@@ -414,7 +420,11 @@ public class MainController implements Initializable {
         });
 	}
 	
-	
+
+    public void shutdown() {
+        ramTimer.cancel();
+        executorService.shutdownNow();
+    }
 	
 
 }

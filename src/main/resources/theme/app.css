@@ -1,6 +1,12 @@
 @import 'dracula.css';
 
-
+@font-face {
+    font-family: 'Alkatra';
+    src: url('Alkatra.ttf');
+}
+.root{
+	 -fx-font-family: 'Alkatra';
+}
 #showPreviewPane{
 	-fx-background-color :   -color-accent-7;
 }
@@ -16,10 +22,16 @@
 
 #startProcessPane:hover {
 	-fx-background-color : -color-accent-4;
+	
 }
 
 .image-view-wrapper {
     -fx-border-color:-color-accent-9;
     -fx-border-style: solid;
     -fx-border-width: 1;
+}
+
+.title{
+	-fx-font-family: 'Alkatra';
+	-fx-font-size: 40px;
 }
